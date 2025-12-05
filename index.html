@@ -184,7 +184,7 @@ document.body.appendChild(button);
 
 // AGREGAR MALLA AL PISO CUANDO INICIA LA SESIÓN AR
 renderer.xr.addEventListener('sessionstart', () => {
-    polarGroup.position.y = 0; // piso real
+    polarGroup.position.y = -1.5; // piso real
     scene.add(polarGroup);
 });
 
