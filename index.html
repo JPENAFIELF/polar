@@ -159,35 +159,41 @@ renderer.xr.addEventListener('sessionstart', () => {
 
 
 /* ===========================================================
-   MALLA POLAR EN EL PISO
+   MALLA POLAR EN EL PISO (COLORES POR CUADRANTE)
 =========================================================== */
 var polarGroup = new THREE.Group();
 
-// círculos
-for (var r = 0.5; r <= 5; r+=0.5){
-    var pts=[];
-    for (var deg=0; deg<360; deg++){
+// círculos (celeste)
+for (var r = 0.5; r <= 5; r += 0.5){
+    var pts = [];
+    for (var deg = 0; deg < 360; deg++){
         var rad = THREE.MathUtils.degToRad(deg);
-        pts.push(new THREE.Vector3(r*Math.cos(rad), 0, r*Math.sin(rad)));
+        pts.push(new THREE.Vector3(r * Math.cos(rad), 0, r * Math.sin(rad)));
     }
     var geometry = new THREE.BufferGeometry().setFromPoints(pts);
-    var material = new THREE.LineBasicMaterial({color:0x00ffff});
+    var material = new THREE.LineBasicMaterial({ color: 0x00ffff });
     polarGroup.add(new THREE.LineLoop(geometry, material));
 }
 
-// radiales
-for (var deg=0; deg<360; deg+=15){
+// radiales con colores por cuadrante
+var quadrantColors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00]; // rojo, verde, azul, amarillo
+
+for (var deg = 0; deg < 360; deg += 15){
     var rad = THREE.MathUtils.degToRad(deg);
     var geometry = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(5*Math.cos(rad), 0, 5*Math.sin(rad))
+        new THREE.Vector3(5 * Math.cos(rad), 0, 5 * Math.sin(rad))
     ]);
-    var material = new THREE.LineBasicMaterial({color:0xff00aa});
+
+    // determinar el cuadrante
+    var quadrant = Math.floor(deg / 90); // 0,1,2,3
+    var material = new THREE.LineBasicMaterial({ color: quadrantColors[quadrant] });
+
     polarGroup.add(new THREE.Line(geometry, material));
 }
 
-// ----> mover todo el grupo al piso
-polarGroup.position.y = -1.5; // ajusta según altura del piso
+// colocar la malla al piso
+polarGroup.position.y = -1.5;
 
 scene.add(polarGroup);
 
