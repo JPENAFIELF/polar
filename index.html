@@ -6,14 +6,17 @@
 <style>
     body { margin: 0; overflow: hidden; }
 </style>
+
+<!-- Three.js GLOBAL (NO MÓDULO) -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.min.js"></script>
+
+<!-- ARButton GLOBAL (compatible con non-module) -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.150.1/examples/jsm/webxr/ARButton.js"></script>
+
 </head>
 <body>
 
-<script type="module">
-
-import * as THREE from "https://esm.run/three@0.160.0";
-import { ARButton } from "https://esm.run/three@0.160.0/examples/jsm/webxr/ARButton.js";
-
+<script>
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(
@@ -40,7 +43,6 @@ document.body.appendChild(
 // ==============================
 const polarGroup = new THREE.Group();
 
-// círculos
 for (let r = 0.5; r <= 5; r += 0.5) {
     const pts = [];
     for (let deg = 0; deg < 360; deg++) {
@@ -53,28 +55,22 @@ for (let r = 0.5; r <= 5; r += 0.5) {
     }
     const geometry = new THREE.BufferGeometry().setFromPoints(pts);
     const material = new THREE.LineBasicMaterial({ color: 0x00ffff });
-    const circle = new THREE.LineLoop(geometry, material);
-    polarGroup.add(circle);
+    polarGroup.add(new THREE.LineLoop(geometry, material));
 }
 
-// radiales
 for (let deg = 0; deg < 360; deg += 15) {
     const rad = THREE.MathUtils.degToRad(deg);
-    const points = [
+    const geometry = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(0, 0, 0),
         new THREE.Vector3(5 * Math.cos(rad), 0, 5 * Math.sin(rad))
-    ];
-    const geom = new THREE.BufferGeometry().setFromPoints(points);
-    const mat = new THREE.LineBasicMaterial({ color: 0xff00aa });
-    const line = new THREE.Line(geom, mat);
-    polarGroup.add(line);
+    ]);
+    const material = new THREE.LineBasicMaterial({ color: 0xff00aa });
+    polarGroup.add(new THREE.Line(geometry, material));
 }
 
 scene.add(polarGroup);
 
-// LOOP
 renderer.setAnimationLoop(() => renderer.render(scene, camera));
-
 </script>
 
 </body>
