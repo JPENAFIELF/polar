@@ -3,10 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Coordenadas Polares AR - Quest 3</title>
-
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/webxr/ARButton.js"></script>
-
 <style>
     body { margin: 0; overflow: hidden; }
 </style>
@@ -18,9 +14,9 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 import { ARButton } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/webxr/ARButton.js";
 
-//////////////////////////////////////////////
-// ESCENA + RENDER MIXED REALITY (AR)
-//////////////////////////////////////////////
+/////////////////////////////////////////////////
+//  ESCENA + RENDER MIXED REALITY (AR)
+/////////////////////////////////////////////////
 
 const scene = new THREE.Scene();
 
@@ -34,21 +30,23 @@ const camera = new THREE.PerspectiveCamera(
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.xr.enabled = true;
-renderer.xr.setReferenceSpaceType('local-floor');
+renderer.xr.setReferenceSpaceType("local-floor");
 document.body.appendChild(renderer.domElement);
 
+// ===============  AR BUTTON (FUNCIONA)  =================
 document.body.appendChild(
     ARButton.createButton(renderer, {
         requiredFeatures: ["hit-test", "local-floor"]
     })
 );
 
-//////////////////////////////////////////////
-// RESTO DE TU CÓDIGO (no cambia)
-//////////////////////////////////////////////
+/////////////////////////////////////////////////
+//  MALLA DE COORDENADAS POLARES EN EL PISO
+/////////////////////////////////////////////////
 
 const polarGroup = new THREE.Group();
 
+// círculos
 for (let r = 0.5; r <= 5; r += 0.5) {
     const pts = [];
     for (let deg = 0; deg < 360; deg++) {
@@ -65,19 +63,27 @@ for (let r = 0.5; r <= 5; r += 0.5) {
     polarGroup.add(circle);
 }
 
+// radiales
 for (let deg = 0; deg < 360; deg += 15) {
     const rad = THREE.MathUtils.degToRad(deg);
+
     const points = [
         new THREE.Vector3(0, 0, 0),
         new THREE.Vector3(5 * Math.cos(rad), 0, 5 * Math.sin(rad))
     ];
+
     const geom = new THREE.BufferGeometry().setFromPoints(points);
     const mat = new THREE.LineBasicMaterial({ color: 0xff00aa });
     const line = new THREE.Line(geom, mat);
+
     polarGroup.add(line);
 }
 
 scene.add(polarGroup);
+
+/////////////////////////////////////////////////
+// LOOP
+/////////////////////////////////////////////////
 
 renderer.setAnimationLoop(() => {
     renderer.render(scene, camera);
