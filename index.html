@@ -181,16 +181,29 @@ scene.add(polarGroup);
 /* ===========================================================
    LABELS DE ÁNGULOS PRINCIPALES
 =========================================================== */
+function createAngleLabel(deg) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128; canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'white';
+  ctx.font = '32px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(deg + '°', canvas.width/2, canvas.height/2);
+  return new THREE.CanvasTexture(canvas);
+}
+
 const angles = [0, 90, 180, 270];
 angles.forEach(deg => {
   const rad = THREE.MathUtils.degToRad(deg);
-  const texture = new THREE.TextureLoader().load(`labels/${deg}.png`);
+  const texture = createAngleLabel(deg);
   const mat = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
-  const plane = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.3), mat);
+  const plane = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.25), mat);
   plane.position.set(5.3 * Math.cos(rad), 0.01, 5.3 * Math.sin(rad));
-  plane.rotation.x = -Math.PI / 2; // que quede horizontal
+  plane.rotation.x = -Math.PI/2;
   polarGroup.add(plane);
 });
+
 
 
 
