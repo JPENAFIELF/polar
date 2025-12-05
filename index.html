@@ -5,12 +5,30 @@
 <title>Coordenadas Polares AR - Quest 3</title>
 <style>
     body { margin: 0; overflow: hidden; }
+    #legend {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(0,0,0,0.3);
+        padding: 10px;
+        color: white;
+        font-family: sans-serif;
+    }
 </style>
 
 <!-- Three.js clásico (no módulo) -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.150.1/examples/jsm/loaders/FontLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.150.1/examples/jsm/geometries/TextGeometry.js"></script>
 </head>
 <body>
+
+<div id="legend">
+    <div style="color:#ff0000;">Primer cuadrante</div>
+    <div style="color:#00ff00;">Segundo cuadrante</div>
+    <div style="color:#0000ff;">Tercer cuadrante</div>
+    <div style="color:#ffff00;">Cuarto cuadrante</div>
+</div>
 
 <script>
 /* ===========================================================
@@ -20,13 +38,11 @@ window.ARButton = function() {};
 window.ARButton.createButton = function(renderer, sessionInit) {
     sessionInit = sessionInit || {};
     var button = document.createElement('button');
-
     function showStartAR() {
         if (sessionInit.domOverlay === undefined) {
             var overlay = document.createElement('div');
             overlay.style.display = 'none';
             document.body.appendChild(overlay);
-
             var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             svg.setAttribute('width', 38);
             svg.setAttribute('height', 38);
@@ -35,20 +51,16 @@ window.ARButton.createButton = function(renderer, sessionInit) {
             svg.style.top = '20px';
             svg.addEventListener('click', function(){ currentSession.end(); });
             overlay.appendChild(svg);
-
             var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             path.setAttribute('d', 'M 12,12 L 28,28 M 28,12 12,28');
             path.setAttribute('stroke', '#fff');
             path.setAttribute('stroke-width', 2);
             svg.appendChild(path);
-
             sessionInit.optionalFeatures = sessionInit.optionalFeatures || [];
             sessionInit.optionalFeatures.push('dom-overlay');
             sessionInit.domOverlay = { root: overlay };
         }
-
         var currentSession = null;
-
         function onSessionStarted(session) {
             session.addEventListener('end', onSessionEnded);
             renderer.xr.setReferenceSpaceType('local');
@@ -58,20 +70,17 @@ window.ARButton.createButton = function(renderer, sessionInit) {
                 currentSession = session;
             });
         }
-
         function onSessionEnded() {
             currentSession.removeEventListener('end', onSessionEnded);
             button.textContent = 'START AR';
             sessionInit.domOverlay.root.style.display = 'none';
             currentSession = null;
         }
-
         button.style.display = '';
         button.style.cursor = 'pointer';
         button.style.left = 'calc(50% - 50px)';
         button.style.width = '100px';
         button.textContent = 'START AR';
-
         button.onmouseenter = function() { button.style.opacity = '1.0'; };
         button.onmouseleave = function() { button.style.opacity = '0.5'; };
         button.onclick = function() {
@@ -82,7 +91,6 @@ window.ARButton.createButton = function(renderer, sessionInit) {
             }
         };
     }
-
     function disableButton() {
         button.style.display = '';
         button.style.cursor = 'auto';
@@ -92,7 +100,6 @@ window.ARButton.createButton = function(renderer, sessionInit) {
         button.onmouseleave = null;
         button.onclick = null;
     }
-
     function stylizeElement(element) {
         element.style.position = 'absolute';
         element.style.bottom = '20px';
@@ -107,7 +114,6 @@ window.ARButton.createButton = function(renderer, sessionInit) {
         element.style.outline = 'none';
         element.style.zIndex = '999';
     }
-
     if ('xr' in navigator) {
         button.id = 'ARButton';
         button.style.display = 'none';
@@ -131,14 +137,7 @@ window.ARButton.createButton = function(renderer, sessionInit) {
    ESCENA, CÁMARA Y RENDERER
 =========================================================== */
 var scene = new THREE.Scene();
-
-var camera = new THREE.PerspectiveCamera(
-    70,
-    window.innerWidth / window.innerHeight,
-    0.01,
-    1000
-);
-
+var camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 1000);
 var renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.xr.enabled = true;
@@ -164,42 +163,51 @@ for (var r = 0.5; r <= 5; r += 0.5){
 
 // radiales con colores por cuadrante
 var quadrantColors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00]; // rojo, verde, azul, amarillo
-
 for (var deg = 0; deg < 360; deg += 15){
     var rad = THREE.MathUtils.degToRad(deg);
     var geometry = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(0, 0, 0),
         new THREE.Vector3(5 * Math.cos(rad), 0, 5 * Math.sin(rad))
     ]);
-    var quadrant = Math.floor(deg / 90); // 0,1,2,3
+    var quadrant = Math.floor(deg / 90);
     var material = new THREE.LineBasicMaterial({ color: quadrantColors[quadrant] });
     polarGroup.add(new THREE.Line(geometry, material));
-
-    // colocar la malla al piso
-polarGroup.position.y = -1.5;
-
-    scene.add(polarGroup);
-
 }
+
+// colocar la malla al piso
+polarGroup.position.y = -1.5;
+scene.add(polarGroup);
+
+/* ===========================================================
+   LABELS DE ÁNGULOS PRINCIPALES
+=========================================================== */
+var loader = new THREE.FontLoader();
+loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function(font) {
+    var angles = [0, 90, 180, 270];
+    angles.forEach(deg => {
+        var rad = THREE.MathUtils.degToRad(deg);
+        var textGeo = new THREE.TextGeometry(deg + "°", { font: font, size: 0.2, height: 0.01 });
+        var textMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        var textMesh = new THREE.Mesh(textGeo, textMat);
+        textMesh.position.set(5.3 * Math.cos(rad), 0.01, 5.3 * Math.sin(rad));
+        polarGroup.add(textMesh);
+    });
+});
 
 /* ===========================================================
    BOTÓN AR
 =========================================================== */
 const button = window.ARButton.createButton(renderer, { requiredFeatures: ["local-floor"] });
 document.body.appendChild(button);
-
-// AGREGAR MALLA AL PISO CUANDO INICIA LA SESIÓN AR
 renderer.xr.addEventListener('sessionstart', () => {
-    polarGroup.position.y = -1.5; // piso real
+    polarGroup.position.y = -1.5; // asegurar piso real
 });
-
-
 
 /* ===========================================================
    LOOP DE RENDER
 =========================================================== */
 renderer.setAnimationLoop(function() {
-    renderer.render(scene,camera);
+    renderer.render(scene, camera);
 });
 </script>
 
