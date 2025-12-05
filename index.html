@@ -145,7 +145,7 @@ renderer.xr.setReferenceSpaceType("local-floor");
 document.body.appendChild(renderer.domElement);
 
 /* ===========================================================
-   MALLA POLAR EN EL PISO (COLORES POR CUADRANTE)
+   MALLA POLAR EN EL PISO (COLORES POR CUADRANTE, CORRECTO)
 =========================================================== */
 var polarGroup = new THREE.Group();
 
@@ -161,10 +161,11 @@ for (var r = 0.5; r <= 5; r += 0.5){
     polarGroup.add(new THREE.LineLoop(geometry, material));
 }
 
-// radiales con colores por cuadrante
-var quadrantColors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00]; // rojo, verde, azul, amarillo
+// radiales con colores por cuadrante (sentido antihorario corregido)
+var quadrantColors = [0xffff00, 0x0000ff, 0x00ff00, 0xff0000]; // amarillo, azul, verde, rojo
 for (var deg = 0; deg < 360; deg += 15){
-    var rad = THREE.MathUtils.degToRad(deg);
+    // invertir el ángulo para sentido antihorario
+    var rad = THREE.MathUtils.degToRad(360 - deg);
     var geometry = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(0, 0, 0),
         new THREE.Vector3(5 * Math.cos(rad), 0, 5 * Math.sin(rad))
@@ -179,7 +180,7 @@ polarGroup.position.y = -1.5;
 scene.add(polarGroup);
 
 /* ===========================================================
-   LABELS DE ÁNGULOS PRINCIPALES (CERCANOS AL ORIGEN)
+   LABELS DE ÁNGULOS PRINCIPALES (CERCANOS Y CORRECTOS)
 =========================================================== */
 function createAngleLabel(deg) {
   const canvas = document.createElement('canvas');
@@ -194,19 +195,25 @@ function createAngleLabel(deg) {
   return new THREE.CanvasTexture(canvas);
 }
 
-const angles = [0, 270, 180, 90];
-const labelDistance = 2.5; // nuevo radio más cercano al origen
+// distancia más cercana para los estudiantes
+const labelDistance = 2.5;
 
-angles.forEach(deg => {
-  const rad = THREE.MathUtils.degToRad(deg);
-  const texture = createAngleLabel(deg);
-  const mat = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
+// posiciones correctas según sistema de coordenadas Three.js
+const angleLabels = [
+  {deg: 0, x: labelDistance, z: 0, color: 0xffff00},   // derecha
+  {deg: 90, x: 0, z: -labelDistance, color: 0x0000ff}, // frente
+  {deg: 180, x: -labelDistance, z: 0, color: 0x00ff00},// izquierda
+  {deg: 270, x: 0, z: labelDistance, color: 0xff0000}  // atrás
+];
+
+angleLabels.forEach(a => {
+  const texture = createAngleLabel(a.deg);
+  const mat = new THREE.MeshBasicMaterial({ map: texture, transparent: true, color: a.color });
   const plane = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.25), mat);
-  plane.position.set(labelDistance * Math.cos(rad), 0.01, labelDistance * Math.sin(rad));
+  plane.position.set(a.x, 0.01, a.z);
   plane.rotation.x = -Math.PI/2;
   polarGroup.add(plane);
 });
-
 
 
 /* ===========================================================
