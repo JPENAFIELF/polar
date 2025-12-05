@@ -179,11 +179,12 @@ polarGroup.position.y = -1.5;
 scene.add(polarGroup);
 
 /* ===========================================================
-   LABELS DE ÁNGULOS PRINCIPALES
+   LABELS DE ÁNGULOS PRINCIPALES (CERCANOS AL ORIGEN)
 =========================================================== */
 function createAngleLabel(deg) {
   const canvas = document.createElement('canvas');
-  canvas.width = 128; canvas.height = 64;
+  canvas.width = 128; 
+  canvas.height = 64;
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = 'white';
   ctx.font = '32px sans-serif';
@@ -193,13 +194,15 @@ function createAngleLabel(deg) {
   return new THREE.CanvasTexture(canvas);
 }
 
-const angles = [0, 90, 180, 270];
+const angles = [270, 180, 90, 0];
+const labelDistance = 2.5; // nuevo radio más cercano al origen
+
 angles.forEach(deg => {
   const rad = THREE.MathUtils.degToRad(deg);
   const texture = createAngleLabel(deg);
   const mat = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
   const plane = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.25), mat);
-  plane.position.set(5.3 * Math.cos(rad), 0.01, 5.3 * Math.sin(rad));
+  plane.position.set(labelDistance * Math.cos(rad), 0.01, labelDistance * Math.sin(rad));
   plane.rotation.x = -Math.PI/2;
   polarGroup.add(plane);
 });
