@@ -7,124 +7,123 @@
     body { margin: 0; overflow: hidden; }
 </style>
 
+<!-- Three.js clásico (no módulo) -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.min.js"></script>
 </head>
 <body>
 
 <script>
 /* ===========================================================
-   ARBUTTON GLOBAL SIN MÓDULOS (ANTES DE USARLO)
+   ARBUTTON GLOBAL SIN MÓDULOS
 =========================================================== */
-window.ARButton = class ARButton {
+window.ARButton = function() {};
+window.ARButton.createButton = function(renderer, sessionInit) {
+    sessionInit = sessionInit || {};
+    var button = document.createElement('button');
 
-    static createButton(renderer, sessionInit) {
-        sessionInit = sessionInit || {};
-        var button = document.createElement('button');
+    function showStartAR() {
+        if (sessionInit.domOverlay === undefined) {
+            var overlay = document.createElement('div');
+            overlay.style.display = 'none';
+            document.body.appendChild(overlay);
 
-        function showStartAR() {
-            if (sessionInit.domOverlay === undefined) {
-                var overlay = document.createElement('div');
-                overlay.style.display = 'none';
-                document.body.appendChild(overlay);
+            var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', 38);
+            svg.setAttribute('height', 38);
+            svg.style.position = 'absolute';
+            svg.style.right = '20px';
+            svg.style.top = '20px';
+            svg.addEventListener('click', function(){ currentSession.end(); });
+            overlay.appendChild(svg);
 
-                var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                svg.setAttribute('width', 38);
-                svg.setAttribute('height', 38);
-                svg.style.position = 'absolute';
-                svg.style.right = '20px';
-                svg.style.top = '20px';
-                svg.addEventListener('click', function(){ currentSession.end(); });
-                overlay.appendChild(svg);
+            var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', 'M 12,12 L 28,28 M 28,12 12,28');
+            path.setAttribute('stroke', '#fff');
+            path.setAttribute('stroke-width', 2);
+            svg.appendChild(path);
 
-                var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                path.setAttribute('d', 'M 12,12 L 28,28 M 28,12 12,28');
-                path.setAttribute('stroke', '#fff');
-                path.setAttribute('stroke-width', 2);
-                svg.appendChild(path);
+            sessionInit.optionalFeatures = sessionInit.optionalFeatures || [];
+            sessionInit.optionalFeatures.push('dom-overlay');
+            sessionInit.domOverlay = { root: overlay };
+        }
 
-                sessionInit.optionalFeatures = sessionInit.optionalFeatures || [];
-                sessionInit.optionalFeatures.push('dom-overlay');
-                sessionInit.domOverlay = { root: overlay };
-            }
+        var currentSession = null;
 
-            var currentSession = null;
+        function onSessionStarted(session) {
+            session.addEventListener('end', onSessionEnded);
+            renderer.xr.setReferenceSpaceType('local');
+            renderer.xr.setSession(session).then(function() {
+                button.textContent = 'STOP AR';
+                sessionInit.domOverlay.root.style.display = '';
+                currentSession = session;
+            });
+        }
 
-            function onSessionStarted(session) {
-                session.addEventListener('end', onSessionEnded);
-                renderer.xr.setReferenceSpaceType('local');
-                renderer.xr.setSession(session).then(function(){
-                    button.textContent = 'STOP AR';
-                    sessionInit.domOverlay.root.style.display = '';
-                    currentSession = session;
-                });
-            }
-
-            function onSessionEnded() {
-                currentSession.removeEventListener('end', onSessionEnded);
-                button.textContent = 'START AR';
-                sessionInit.domOverlay.root.style.display = 'none';
-                currentSession = null;
-            }
-
-            button.style.display = '';
-            button.style.cursor = 'pointer';
-            button.style.left = 'calc(50% - 50px)';
-            button.style.width = '100px';
+        function onSessionEnded() {
+            currentSession.removeEventListener('end', onSessionEnded);
             button.textContent = 'START AR';
-
-            button.onmouseenter = function() { button.style.opacity = '1.0'; };
-            button.onmouseleave = function() { button.style.opacity = '0.5'; };
-            button.onclick = function() {
-                if (currentSession === null) {
-                    navigator.xr.requestSession('immersive-ar', sessionInit).then(onSessionStarted);
-                } else {
-                    currentSession.end();
-                }
-            };
+            sessionInit.domOverlay.root.style.display = 'none';
+            currentSession = null;
         }
 
-        function disableButton() {
-            button.style.display = '';
-            button.style.cursor = 'auto';
-            button.style.left = 'calc(50% - 75px)';
-            button.style.width = '150px';
-            button.onmouseenter = null;
-            button.onmouseleave = null;
-            button.onclick = null;
-        }
+        button.style.display = '';
+        button.style.cursor = 'pointer';
+        button.style.left = 'calc(50% - 50px)';
+        button.style.width = '100px';
+        button.textContent = 'START AR';
 
-        function stylizeElement(element) {
-            element.style.position = 'absolute';
-            element.style.bottom = '20px';
-            element.style.padding = '12px 6px';
-            element.style.border = '1px solid #fff';
-            element.style.borderRadius = '4px';
-            element.style.background = 'rgba(0,0,0,0.1)';
-            element.style.color = '#fff';
-            element.style.font = 'normal 13px sans-serif';
-            element.style.textAlign = 'center';
-            element.style.opacity = '0.5';
-            element.style.outline = 'none';
-            element.style.zIndex = '999';
-        }
+        button.onmouseenter = function() { button.style.opacity = '1.0'; };
+        button.onmouseleave = function() { button.style.opacity = '0.5'; };
+        button.onclick = function() {
+            if (currentSession === null) {
+                navigator.xr.requestSession('immersive-ar', sessionInit).then(onSessionStarted);
+            } else {
+                currentSession.end();
+            }
+        };
+    }
 
-        if ('xr' in navigator) {
-            button.id = 'ARButton';
-            button.style.display = 'none';
-            stylizeElement(button);
-            navigator.xr.isSessionSupported('immersive-ar')
-                .then(function(supported){ supported ? showStartAR() : disableButton(); })
-                .catch(disableButton);
-            return button;
-        } else {
-            var message = document.createElement('a');
-            message.href = window.isSecureContext ? 'https://immersiveweb.dev/' : document.location.href.replace(/^http:/,'https:');
-            message.innerHTML = window.isSecureContext ? 'WEBXR NOT AVAILABLE' : 'WEBXR NEEDS HTTPS';
-            message.style.left = 'calc(50% - 90px)';
-            message.style.width = '180px';
-            stylizeElement(message);
-            return message;
-        }
+    function disableButton() {
+        button.style.display = '';
+        button.style.cursor = 'auto';
+        button.style.left = 'calc(50% - 75px)';
+        button.style.width = '150px';
+        button.onmouseenter = null;
+        button.onmouseleave = null;
+        button.onclick = null;
+    }
+
+    function stylizeElement(element) {
+        element.style.position = 'absolute';
+        element.style.bottom = '20px';
+        element.style.padding = '12px 6px';
+        element.style.border = '1px solid #fff';
+        element.style.borderRadius = '4px';
+        element.style.background = 'rgba(0,0,0,0.1)';
+        element.style.color = '#fff';
+        element.style.font = 'normal 13px sans-serif';
+        element.style.textAlign = 'center';
+        element.style.opacity = '0.5';
+        element.style.outline = 'none';
+        element.style.zIndex = '999';
+    }
+
+    if ('xr' in navigator) {
+        button.id = 'ARButton';
+        button.style.display = 'none';
+        stylizeElement(button);
+        navigator.xr.isSessionSupported('immersive-ar')
+            .then(function(supported){ supported ? showStartAR() : disableButton(); })
+            .catch(disableButton);
+        return button;
+    } else {
+        var message = document.createElement('a');
+        message.href = window.isSecureContext ? 'https://immersiveweb.dev/' : document.location.href.replace(/^http:/,'https:');
+        message.innerHTML = window.isSecureContext ? 'WEBXR NOT AVAILABLE' : 'WEBXR NEEDS HTTPS';
+        message.style.left = 'calc(50% - 90px)';
+        message.style.width = '180px';
+        stylizeElement(message);
+        return message;
     }
 };
 
@@ -150,7 +149,7 @@ document.body.appendChild(renderer.domElement);
    BOTÓN AR
 =========================================================== */
 document.body.appendChild(
-    ARButton.createButton(renderer, { requiredFeatures: ["local-floor"] })
+    window.ARButton.createButton(renderer, { requiredFeatures: ["local-floor"] })
 );
 
 /* ===========================================================
@@ -160,8 +159,8 @@ var polarGroup = new THREE.Group();
 
 // círculos
 for (var r = 0.5; r <= 5; r+=0.5){
-    var pts=[];
-    for (var deg=0; deg<360; deg++){
+    var pts = [];
+    for (var deg = 0; deg < 360; deg++){
         var rad = THREE.MathUtils.degToRad(deg);
         pts.push(new THREE.Vector3(r*Math.cos(rad),0,r*Math.sin(rad)));
     }
@@ -171,7 +170,7 @@ for (var r = 0.5; r <= 5; r+=0.5){
 }
 
 // radiales
-for (var deg=0; deg<360; deg+=15){
+for (var deg = 0; deg < 360; deg += 15){
     var rad = THREE.MathUtils.degToRad(deg);
     var geometry = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(0,0,0),
@@ -186,7 +185,9 @@ scene.add(polarGroup);
 /* ===========================================================
    LOOP DE RENDER
 =========================================================== */
-renderer.setAnimationLoop(function(){ renderer.render(scene,camera); });
+renderer.setAnimationLoop(function() {
+    renderer.render(scene,camera);
+});
 </script>
 
 </body>
