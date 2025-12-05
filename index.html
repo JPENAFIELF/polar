@@ -179,7 +179,7 @@ polarGroup.position.y = -1.5;
 scene.add(polarGroup);
 
 /* ===========================================================
-   LABELS DE ÁNGULOS PRINCIPALES (CERCANOS AL ORIGEN)
+   LABELS DE ÁNGULOS PRINCIPALES (CORREGIDOS)
 =========================================================== */
 function createAngleLabel(deg) {
   const canvas = document.createElement('canvas');
@@ -194,18 +194,30 @@ function createAngleLabel(deg) {
   return new THREE.CanvasTexture(canvas);
 }
 
-const angles = [270, 180, 90, 0];
-const labelDistance = 2.5; // nuevo radio más cercano al origen
+// labels en posición correcta para coordenadas polares
+const angles = [0, 90, 180, 270];
+const labelDistance = 2.5;
 
 angles.forEach(deg => {
   const rad = THREE.MathUtils.degToRad(deg);
   const texture = createAngleLabel(deg);
   const mat = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
   const plane = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.25), mat);
-  plane.position.set(labelDistance * Math.cos(rad), 0.01, labelDistance * Math.sin(rad));
+
+  // posición corregida
+  let x = 0, z = 0;
+  switch(deg) {
+    case 0: x = labelDistance; z = 0; break;      // derecha
+    case 90: x = 0; z = labelDistance; break;     // frente
+    case 180: x = -labelDistance; z = 0; break;   // izquierda
+    case 270: x = 0; z = -labelDistance; break;   // atrás
+  }
+
+  plane.position.set(x, 0.01, z);
   plane.rotation.x = -Math.PI/2;
   polarGroup.add(plane);
 });
+
 
 
 
