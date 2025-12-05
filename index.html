@@ -159,10 +159,10 @@ var polarGroup = new THREE.Group();
 
 // círculos
 for (var r = 0.5; r <= 5; r+=0.5){
-    var pts = [];
-    for (var deg = 0; deg < 360; deg++){
+    var pts=[];
+    for (var deg=0; deg<360; deg++){
         var rad = THREE.MathUtils.degToRad(deg);
-        pts.push(new THREE.Vector3(r*Math.cos(rad),0,r*Math.sin(rad)));
+        pts.push(new THREE.Vector3(r*Math.cos(rad), 0, r*Math.sin(rad)));
     }
     var geometry = new THREE.BufferGeometry().setFromPoints(pts);
     var material = new THREE.LineBasicMaterial({color:0x00ffff});
@@ -170,17 +170,21 @@ for (var r = 0.5; r <= 5; r+=0.5){
 }
 
 // radiales
-for (var deg = 0; deg < 360; deg += 15){
+for (var deg=0; deg<360; deg+=15){
     var rad = THREE.MathUtils.degToRad(deg);
     var geometry = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(0,0,0),
-        new THREE.Vector3(5*Math.cos(rad),0,5*Math.sin(rad))
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(5*Math.cos(rad), 0, 5*Math.sin(rad))
     ]);
     var material = new THREE.LineBasicMaterial({color:0xff00aa});
     polarGroup.add(new THREE.Line(geometry, material));
 }
 
+// ----> mover todo el grupo al piso
+polarGroup.position.y = -1.5; // ajusta según altura del piso
+
 scene.add(polarGroup);
+
 
 /* ===========================================================
    LOOP DE RENDER
