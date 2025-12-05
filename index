@@ -1,69 +1,102 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <meta charset="utf-8">
-    <title>Coordenadas Polares MR - Quest 3</title>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/webxr/VRButton.js"></script>
+<meta charset="UTF-8">
+<title>Coordenadas Polares AR - Quest 3</title>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/webxr/ARButton.js"></script>
+
+<style>
+    body { margin: 0; overflow: hidden; }
+</style>
 </head>
-<body style="margin:0; overflow:hidden;">
+<body>
+
 <script>
-    // Crear escena mixta (passthrough)
-    const scene = new THREE.Scene();
 
-    // Cámara VR
-    const camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 0.01, 1000);
+//////////////////////////////////////////////
+// ESCENA + RENDER MIXED REALITY (AR)
+//////////////////////////////////////////////
 
-    // Render con soporte WebXR + Passthrough
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.xr.enabled = true;
-    document.body.appendChild(renderer.domElement);
-    document.body.appendChild(THREE.VRButton.createButton(renderer));
+const scene = new THREE.Scene();
 
-    //------------------------------------------
-    //   CREAR MALLA DE COORDENADAS POLARES
-    //------------------------------------------
+const camera = new THREE.PerspectiveCamera(
+    70,
+    window.innerWidth / window.innerHeight,
+    0.01,
+    1000
+);
 
-    const polarGroup = new THREE.Group();
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.xr.enabled = true;
+renderer.xr.setReferenceSpaceType('local-floor');  // ⬅️ Usa el piso real
+document.body.appendChild(renderer.domElement);
 
-    // Círculos concéntricos
-    for (let r = 0.5; r <= 5; r += 0.5) {
-        const circleGeom = new THREE.CircleGeometry(r, 360);
-        circleGeom.vertices.shift(); // quitar centro
-        const circle = new THREE.LineLoop(
-            new THREE.BufferGeometry().setFromPoints(circleGeom.vertices),
-            new THREE.LineBasicMaterial({ color: 0x00ffff })
-        );
-        circle.rotation.x = -Math.PI / 2; // acostarlo en el piso
-        polarGroup.add(circle);
-    }
+document.body.appendChild(
+    ARButton.createButton(renderer, {
+        requiredFeatures: ["hit-test", "local-floor"]
+    })
+);
 
-    // Líneas radiales cada 15°
-    for (let deg = 0; deg < 360; deg += 15) {
+//////////////////////////////////////////////
+// CREAR MALLA POLAR EN EL PISO REAL
+//////////////////////////////////////////////
+
+const polarGroup = new THREE.Group();
+
+// === CÍRCULOS ===
+for (let r = 0.5; r <= 5; r += 0.5) {
+
+    const pts = [];
+    for (let deg = 0; deg < 360; deg++) {
         const rad = THREE.MathUtils.degToRad(deg);
-        const x = 5 * Math.cos(rad);
-        const z = 5 * Math.sin(rad);
-
-        const points = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(x, 0, z)];
-        const geom = new THREE.BufferGeometry().setFromPoints(points);
-
-        const line = new THREE.Line(
-            geom,
-            new THREE.LineBasicMaterial({ color: 0xff00aa })
-        );
-        polarGroup.add(line);
+        pts.push(new THREE.Vector3(
+            r * Math.cos(rad),
+            0,
+            r * Math.sin(rad)
+        ));
     }
 
-    // Posicionar la malla en el suelo real
-    polarGroup.position.set(0, -1.6, 0); // ajusta altura según necesidad
-    scene.add(polarGroup);
+    const geometry = new THREE.BufferGeometry().setFromPoints(pts);
+    const material = new THREE.LineBasicMaterial({ color: 0x00ffff });
+    const circle = new THREE.LineLoop(geometry, material);
 
-    //------------------------------------------
-    //   ANIMACIÓN
-    //------------------------------------------
+    polarGroup.add(circle);
+}
+
+// === LÍNEAS RADIALES ===
+for (let deg = 0; deg < 360; deg += 15) {
+    const rad = THREE.MathUtils.degToRad(deg);
+
+    const points = [
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(5 * Math.cos(rad), 0, 5 * Math.sin(rad))
+    ];
+
+    const geom = new THREE.BufferGeometry().setFromPoints(points);
+    const mat = new THREE.LineBasicMaterial({ color: 0xff00aa });
+    const line = new THREE.Line(geom, mat);
+
+    polarGroup.add(line);
+}
+
+polarGroup.rotation.x = 0;       // ya está en plano horizontal
+polarGroup.position.set(0, 0, 0); // piso real
+scene.add(polarGroup);
+
+//////////////////////////////////////////////
+// LOOP
+//////////////////////////////////////////////
+
+function animate() {
     renderer.setAnimationLoop(() => {
         renderer.render(scene, camera);
     });
+}
+
+animate();
 
 </script>
 </body>
