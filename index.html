@@ -148,9 +148,15 @@ document.body.appendChild(renderer.domElement);
 /* ===========================================================
    BOTÓN AR
 =========================================================== */
-document.body.appendChild(
-    window.ARButton.createButton(renderer, { requiredFeatures: ["local-floor"] })
-);
+const button = window.ARButton.createButton(renderer, { requiredFeatures: ["local-floor"] });
+document.body.appendChild(button);
+
+// Ajustar malla polar al piso después de iniciar sesión AR
+renderer.xr.addEventListener('sessionstart', () => {
+    // mover todo el grupo al piso
+    polarGroup.position.y = 0; // 0 = piso real en local-floor
+});
+
 
 /* ===========================================================
    MALLA POLAR EN EL PISO
