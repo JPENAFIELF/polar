@@ -146,19 +146,6 @@ renderer.xr.setReferenceSpaceType("local-floor");
 document.body.appendChild(renderer.domElement);
 
 /* ===========================================================
-   BOTÓN AR
-=========================================================== */
-const button = window.ARButton.createButton(renderer, { requiredFeatures: ["local-floor"] });
-document.body.appendChild(button);
-
-// Ajustar malla polar al piso después de iniciar sesión AR
-renderer.xr.addEventListener('sessionstart', () => {
-    // mover todo el grupo al piso
-    polarGroup.position.y = -1.5; // 0 = piso real en local-floor
-});
-
-
-/* ===========================================================
    MALLA POLAR EN EL PISO (COLORES POR CUADRANTE)
 =========================================================== */
 var polarGroup = new THREE.Group();
@@ -184,18 +171,23 @@ for (var deg = 0; deg < 360; deg += 15){
         new THREE.Vector3(0, 0, 0),
         new THREE.Vector3(5 * Math.cos(rad), 0, 5 * Math.sin(rad))
     ]);
-
-    // determinar el cuadrante
     var quadrant = Math.floor(deg / 90); // 0,1,2,3
     var material = new THREE.LineBasicMaterial({ color: quadrantColors[quadrant] });
-
     polarGroup.add(new THREE.Line(geometry, material));
 }
 
-// colocar la malla al piso
-polarGroup.position.y = -1.5;
+/* ===========================================================
+   BOTÓN AR
+=========================================================== */
+const button = window.ARButton.createButton(renderer, { requiredFeatures: ["local-floor"] });
+document.body.appendChild(button);
 
-scene.add(polarGroup);
+// AGREGAR MALLA AL PISO CUANDO INICIA LA SESIÓN AR
+renderer.xr.addEventListener('sessionstart', () => {
+    polarGroup.position.y = 0; // piso real
+    scene.add(polarGroup);
+});
+
 
 
 /* ===========================================================
