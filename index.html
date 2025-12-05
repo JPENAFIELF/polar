@@ -154,7 +154,7 @@ document.body.appendChild(button);
 // Ajustar malla polar al piso después de iniciar sesión AR
 renderer.xr.addEventListener('sessionstart', () => {
     // mover todo el grupo al piso
-    polarGroup.position.y = 0; // 0 = piso real en local-floor
+    polarGroup.position.y = -1.5; // 0 = piso real en local-floor
 });
 
 
