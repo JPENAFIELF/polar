@@ -13,7 +13,10 @@
 </head>
 <body>
 
-<script>
+<script type="module">
+
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+import { ARButton } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/webxr/ARButton.js";
 
 //////////////////////////////////////////////
 // ESCENA + RENDER MIXED REALITY (AR)
@@ -31,7 +34,7 @@ const camera = new THREE.PerspectiveCamera(
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.xr.enabled = true;
-renderer.xr.setReferenceSpaceType('local-floor');  // ⬅️ Usa el piso real
+renderer.xr.setReferenceSpaceType('local-floor');
 document.body.appendChild(renderer.domElement);
 
 document.body.appendChild(
@@ -41,14 +44,12 @@ document.body.appendChild(
 );
 
 //////////////////////////////////////////////
-// CREAR MALLA POLAR EN EL PISO REAL
+// RESTO DE TU CÓDIGO (no cambia)
 //////////////////////////////////////////////
 
 const polarGroup = new THREE.Group();
 
-// === CÍRCULOS ===
 for (let r = 0.5; r <= 5; r += 0.5) {
-
     const pts = [];
     for (let deg = 0; deg < 360; deg++) {
         const rad = THREE.MathUtils.degToRad(deg);
@@ -58,46 +59,31 @@ for (let r = 0.5; r <= 5; r += 0.5) {
             r * Math.sin(rad)
         ));
     }
-
     const geometry = new THREE.BufferGeometry().setFromPoints(pts);
     const material = new THREE.LineBasicMaterial({ color: 0x00ffff });
     const circle = new THREE.LineLoop(geometry, material);
-
     polarGroup.add(circle);
 }
 
-// === LÍNEAS RADIALES ===
 for (let deg = 0; deg < 360; deg += 15) {
     const rad = THREE.MathUtils.degToRad(deg);
-
     const points = [
         new THREE.Vector3(0, 0, 0),
         new THREE.Vector3(5 * Math.cos(rad), 0, 5 * Math.sin(rad))
     ];
-
     const geom = new THREE.BufferGeometry().setFromPoints(points);
     const mat = new THREE.LineBasicMaterial({ color: 0xff00aa });
     const line = new THREE.Line(geom, mat);
-
     polarGroup.add(line);
 }
 
-polarGroup.rotation.x = 0;       // ya está en plano horizontal
-polarGroup.position.set(0, 0, 0); // piso real
 scene.add(polarGroup);
 
-//////////////////////////////////////////////
-// LOOP
-//////////////////////////////////////////////
-
-function animate() {
-    renderer.setAnimationLoop(() => {
-        renderer.render(scene, camera);
-    });
-}
-
-animate();
+renderer.setAnimationLoop(() => {
+    renderer.render(scene, camera);
+});
 
 </script>
+
 </body>
 </html>
