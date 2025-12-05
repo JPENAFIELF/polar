@@ -11,13 +11,15 @@
 
 <script type="module">
 
+// ==============================
+// IMPORTAR SOLO ESM (correcto)
+// ==============================
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 import { ARButton } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/webxr/ARButton.js";
 
-/////////////////////////////////////////////////
-//  ESCENA + RENDER MIXED REALITY (AR)
-/////////////////////////////////////////////////
-
+// ==============================
+// ESCENA AR MIXED REALITY
+// ==============================
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(
@@ -33,17 +35,15 @@ renderer.xr.enabled = true;
 renderer.xr.setReferenceSpaceType("local-floor");
 document.body.appendChild(renderer.domElement);
 
-// ===============  AR BUTTON (FUNCIONA)  =================
 document.body.appendChild(
     ARButton.createButton(renderer, {
-        requiredFeatures: ["hit-test", "local-floor"]
+        requiredFeatures: ["local-floor"]
     })
 );
 
-/////////////////////////////////////////////////
-//  MALLA DE COORDENADAS POLARES EN EL PISO
-/////////////////////////////////////////////////
-
+// ==============================
+// MALLA POLAR EN EL PISO
+// ==============================
 const polarGroup = new THREE.Group();
 
 // círculos
@@ -75,19 +75,15 @@ for (let deg = 0; deg < 360; deg += 15) {
     const geom = new THREE.BufferGeometry().setFromPoints(points);
     const mat = new THREE.LineBasicMaterial({ color: 0xff00aa });
     const line = new THREE.Line(geom, mat);
-
     polarGroup.add(line);
 }
 
 scene.add(polarGroup);
 
-/////////////////////////////////////////////////
+// ==============================
 // LOOP
-/////////////////////////////////////////////////
-
-renderer.setAnimationLoop(() => {
-    renderer.render(scene, camera);
-});
+// ==============================
+renderer.setAnimationLoop(() => renderer.render(scene, camera));
 
 </script>
 
