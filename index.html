@@ -179,7 +179,7 @@ polarGroup.position.y = -1.5;
 scene.add(polarGroup);
 
 /* ===========================================================
-   LABELS DE ÁNGULOS PRINCIPALES (CORREGIDOS CON CUADRANTES)
+   LABELS DE ÁNGULOS PRINCIPALES (CERCANOS AL ORIGEN)
 =========================================================== */
 function createAngleLabel(deg) {
   const canvas = document.createElement('canvas');
@@ -194,26 +194,19 @@ function createAngleLabel(deg) {
   return new THREE.CanvasTexture(canvas);
 }
 
-// distancia de los labels desde el origen (más cerca para que se vean)
-const labelDistance = 2.5;
+const angles = [0, 90, 180, 270];
+const labelDistance = 2.5; // nuevo radio más cercano al origen
 
-// posiciones y colores de los labels principales
-const angleLabels = [
-  {deg: 0, x: labelDistance, z: 0, color: 0xffff00},    // derecha, amarillo, 1er cuadrante
-  {deg: 90, x: 0, z: labelDistance, color: 0x0000ff},   // frente, azul, 2do cuadrante
-  {deg: 180, x: -labelDistance, z: 0, color: 0x00ff00}, // izquierda, verde, 3er cuadrante
-  {deg: 270, x: 0, z: -labelDistance, color: 0xff0000}  // atrás, rojo, 4to cuadrante
-];
-
-angleLabels.forEach(a => {
-  const rad = THREE.MathUtils.degToRad(a.deg);
-  const texture = createAngleLabel(a.deg);
-  const mat = new THREE.MeshBasicMaterial({ map: texture, transparent: true, color: a.color });
+angles.forEach(deg => {
+  const rad = THREE.MathUtils.degToRad(deg);
+  const texture = createAngleLabel(deg);
+  const mat = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
   const plane = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.25), mat);
-  plane.position.set(a.x, 0.01, a.z);
+  plane.position.set(labelDistance * Math.cos(rad), 0.01, labelDistance * Math.sin(rad));
   plane.rotation.x = -Math.PI/2;
   polarGroup.add(plane);
 });
+
 
 
 /* ===========================================================
