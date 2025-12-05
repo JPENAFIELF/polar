@@ -7,14 +7,16 @@
     body { margin: 0; overflow: hidden; }
 </style>
 
-<!-- Three.js GLOBAL (NO MÓDULO) -->
+<!-- Three.js GLOBAL (NO MODULE) -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.min.js"></script>
-
 
 </head>
 <body>
 
 <script>
+/* ===========================================================
+   ESCENA, CÁMARA Y RENDERER
+=========================================================== */
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(
@@ -30,17 +32,21 @@ renderer.xr.enabled = true;
 renderer.xr.setReferenceSpaceType("local-floor");
 document.body.appendChild(renderer.domElement);
 
+/* ===========================================================
+   BOTÓN AR (USANDO TU ARBUTTON SIN MÓDULOS)
+=========================================================== */
 document.body.appendChild(
     ARButton.createButton(renderer, {
         requiredFeatures: ["local-floor"]
     })
 );
 
-// ==============================
-// MALLA POLAR EN EL PISO
-// ==============================
+/* ===========================================================
+   MALLA POLAR EN EL PISO
+=========================================================== */
 const polarGroup = new THREE.Group();
 
+// CÍRCULOS
 for (let r = 0.5; r <= 5; r += 0.5) {
     const pts = [];
     for (let deg = 0; deg < 360; deg++) {
@@ -56,6 +62,7 @@ for (let r = 0.5; r <= 5; r += 0.5) {
     polarGroup.add(new THREE.LineLoop(geometry, material));
 }
 
+// RADIALES
 for (let deg = 0; deg < 360; deg += 15) {
     const rad = THREE.MathUtils.degToRad(deg);
     const geometry = new THREE.BufferGeometry().setFromPoints([
@@ -68,73 +75,74 @@ for (let deg = 0; deg < 360; deg += 15) {
 
 scene.add(polarGroup);
 
+/* ===========================================================
+   LOOP DE RENDERIZADO
+=========================================================== */
 renderer.setAnimationLoop(() => renderer.render(scene, camera));
 </script>
+
 <script>
+/* ===========================================================
+   ARBUTTON GLOBAL SIN MÓDULOS (COMPATIBLE CON QUEST 3)
+=========================================================== */
 window.ARButton = class ARButton {
-// ARButton GLOBAL VERSION (NO MODULES, NO EXPORTS)
 
-window.ARButton = class ARButton {
+    static createButton(renderer, sessionInit = {}) {
 
-    static createButton( renderer, sessionInit = {} ) {
-
-        const button = document.createElement( 'button' );
+        const button = document.createElement('button');
 
         function showStartAR() {
 
-            if ( sessionInit.domOverlay === undefined ) {
+            if (sessionInit.domOverlay === undefined) {
 
-                const overlay = document.createElement( 'div' );
+                const overlay = document.createElement('div');
                 overlay.style.display = 'none';
-                document.body.appendChild( overlay );
+                document.body.appendChild(overlay);
 
-                const svg = document.createElementNS( 'http://www.w3.org/2000/svg', 'svg' );
-                svg.setAttribute( 'width', 38 );
-                svg.setAttribute( 'height', 38 );
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('width', 38);
+                svg.setAttribute('height', 38);
                 svg.style.position = 'absolute';
                 svg.style.right = '20px';
                 svg.style.top = '20px';
-                svg.addEventListener( 'click', () => currentSession.end() );
-                overlay.appendChild( svg );
+                svg.addEventListener('click', () => currentSession.end());
+                overlay.appendChild(svg);
 
-                const path = document.createElementNS( 'http://www.w3.org/2000/svg', 'path' );
-                path.setAttribute( 'd', 'M 12,12 L 28,28 M 28,12 12,28' );
-                path.setAttribute( 'stroke', '#fff' );
-                path.setAttribute( 'stroke-width', 2 );
-                svg.appendChild( path );
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', 'M 12,12 L 28,28 M 28,12 12,28');
+                path.setAttribute('stroke', '#fff');
+                path.setAttribute('stroke-width', 2);
+                svg.appendChild(path);
 
                 sessionInit.optionalFeatures = sessionInit.optionalFeatures || [];
-                sessionInit.optionalFeatures.push( 'dom-overlay' );
+                sessionInit.optionalFeatures.push('dom-overlay');
                 sessionInit.domOverlay = { root: overlay };
-
             }
 
             let currentSession = null;
 
-            async function onSessionStarted( session ) {
+            async function onSessionStarted(session) {
 
-                session.addEventListener( 'end', onSessionEnded );
+                session.addEventListener('end', onSessionEnded);
 
-                renderer.xr.setReferenceSpaceType( 'local' );
+                renderer.xr.setReferenceSpaceType('local');
 
-                await renderer.xr.setSession( session );
+                await renderer.xr.setSession(session);
 
                 button.textContent = 'STOP AR';
                 sessionInit.domOverlay.root.style.display = '';
 
                 currentSession = session;
-
             }
 
             function onSessionEnded() {
 
-                currentSession.removeEventListener( 'end', onSessionEnded );
+                currentSession.removeEventListener('end', onSessionEnded);
 
                 button.textContent = 'START AR';
                 sessionInit.domOverlay.root.style.display = 'none';
 
                 currentSession = null;
-
             }
 
             button.style.display = '';
@@ -144,15 +152,14 @@ window.ARButton = class ARButton {
 
             button.textContent = 'START AR';
 
-            button.onmouseenter = () => button.style.opacity = '1.0';
-            button.onmouseleave = () => button.style.opacity = '0.5';
+            button.onmouseenter = () => (button.style.opacity = '1.0');
+            button.onmouseleave = () => (button.style.opacity = '0.5');
 
             button.onclick = () => {
                 currentSession === null
-                    ? navigator.xr.requestSession( 'immersive-ar', sessionInit ).then( onSessionStarted )
+                    ? navigator.xr.requestSession('immersive-ar', sessionInit).then(onSessionStarted)
                     : currentSession.end();
             };
-
         }
 
         function disableButton() {
@@ -165,7 +172,7 @@ window.ARButton = class ARButton {
             button.onclick = null;
         }
 
-        function stylizeElement( element ) {
+        function stylizeElement(element) {
             element.style.position = 'absolute';
             element.style.bottom = '20px';
             element.style.padding = '12px 6px';
@@ -180,26 +187,26 @@ window.ARButton = class ARButton {
             element.style.zIndex = '999';
         }
 
-        if ( 'xr' in navigator ) {
+        if ('xr' in navigator) {
 
             button.id = 'ARButton';
             button.style.display = 'none';
 
-            stylizeElement( button );
+            stylizeElement(button);
 
-            navigator.xr.isSessionSupported( 'immersive-ar' )
-                .then( supported => supported ? showStartAR() : disableButton() )
-                .catch( disableButton );
+            navigator.xr.isSessionSupported('immersive-ar')
+                .then(supported => (supported ? showStartAR() : disableButton()))
+                .catch(disableButton);
 
             return button;
 
         } else {
 
-            const message = document.createElement( 'a' );
+            const message = document.createElement('a');
 
             message.href = window.isSecureContext
                 ? 'https://immersiveweb.dev/'
-                : document.location.href.replace( /^http:/, 'https:' );
+                : document.location.href.replace(/^http:/, 'https:');
 
             message.innerHTML = window.isSecureContext
                 ? 'WEBXR NOT AVAILABLE'
@@ -208,15 +215,11 @@ window.ARButton = class ARButton {
             message.style.left = 'calc(50% - 90px)';
             message.style.width = '180px';
 
-            stylizeElement( message );
+            stylizeElement(message);
 
             return message;
-
         }
-
     }
-
-};
 };
 </script>
 
