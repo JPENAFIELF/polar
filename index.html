@@ -205,21 +205,31 @@ function createRadiusLabel(text) {
 }
 
 // colocar números en los círculos
+// colocar números en los círculos
 var ringIndex = 1;
+
 for (var r = 0.5; r <= 5; r += 0.5) {
 
     var label = createRadiusLabel(ringIndex.toString());
 
-    // posición en el ángulo 0° de cada círculo
+    // offset para que el número quede antes de la línea del círculo
+    var offset = 0.25;
+
+    // posición en el ángulo 90° (frente al usuario)
     label.position.set(
-        0, 0.02, r
+        0,
+        0.02,
+        r - offset   // 👈 AQUÍ LA CORRECCIÓN
     );
 
-    label.rotation.x = -Math.PI/2;
+    // etiqueta acostada en el piso
+    label.rotation.x = -Math.PI / 2;
 
     polarGroup.add(label);
+
     ringIndex++;
 }
+
 
     
 /* ===========================================================
