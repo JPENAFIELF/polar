@@ -212,13 +212,13 @@ for (var r = 0.5; r <= 5; r += 0.5) {
     var label = createRadiusLabel(ringIndex.toString());
 
     // Offset hacia adentro para NO chocar con la línea del 90°
-    var offset = 0.22;
+    var offset = 0.12;
 
     // Ángulo 90° EN SENTIDO ANTIHORARIO (Z negativo)
     label.position.set(
         0,
         0.02,
-        -(r - offset)   // ✔ Z NEGATIVO → FRENTE AL USUARIO (90°)
+        -(r + offset)   // ✔ Z NEGATIVO → FRENTE AL USUARIO (90°)
     );
 
     // etiqueta acostada en el piso
