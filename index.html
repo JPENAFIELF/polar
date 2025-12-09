@@ -180,40 +180,70 @@ polarGroup.position.y = -1.5;
 scene.add(polarGroup);
 
 /* ===========================================================
-   LABELS DE ÁNGULOS PRINCIPALES (CERCANOS Y CORRECTOS)
+   RADIALES + LABELS PARA CADA ÁNGULO (0° A 345° CADA 15°)
 =========================================================== */
-function createAngleLabel(deg) {
-  const canvas = document.createElement('canvas');
-  canvas.width = 128; 
-  canvas.height = 64;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = 'white';
-  ctx.font = '32px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(deg + '°', canvas.width/2, canvas.height/2);
-  return new THREE.CanvasTexture(canvas);
+
+var quadrantColors = [0xffff00, 0x0000ff, 0x00ff00, 0xff0000];
+const labelDistance = 2.5;  // ✔ distancia que ya funcionaba
+
+function createAngleLabel(deg, color) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = 'white';
+    ctx.font = '32px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(deg + '°', canvas.width / 2, canvas.height / 2);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    const mat = new THREE.MeshBasicMaterial({
+        map: tex,
+        transparent: true,
+        color: color
+    });
+
+    return new THREE.Mesh(new THREE.PlaneGeometry(0.45, 0.22), mat);
 }
 
-// distancia más cercana para los estudiantes
-const labelDistance = 2.5;
+for (var deg = 0; deg < 360; deg += 15) {
 
-// posiciones correctas según sistema de coordenadas Three.js
-const angleLabels = [
-  {deg: 0, x: labelDistance, z: 0, color: 0xffff00},   // derecha
-  {deg: 90, x: 0, z: -labelDistance, color: 0x0000ff}, // frente
-  {deg: 180, x: -labelDistance, z: 0, color: 0x00ff00},// izquierda
-  {deg: 270, x: 0, z: labelDistance, color: 0xff0000}  // atrás
-];
+    // invertir ángulo para sentido matemático antihorario
+    var rad = THREE.MathUtils.degToRad(360 - deg);
 
-angleLabels.forEach(a => {
-  const texture = createAngleLabel(a.deg);
-  const mat = new THREE.MeshBasicMaterial({ map: texture, transparent: true, color: a.color });
-  const plane = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.25), mat);
-  plane.position.set(a.x, 0.01, a.z);
-  plane.rotation.x = -Math.PI/2;
-  polarGroup.add(plane);
-});
+    // línea radial
+    var lineGeom = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(5 * Math.cos(rad), 0, 5 * Math.sin(rad))
+    ]);
+
+    var quadrant = Math.floor(deg / 90);
+    var color = quadrantColors[quadrant];
+
+    var lineMat = new THREE.LineBasicMaterial({ color });
+    var line = new THREE.Line(lineGeom, lineMat);
+    polarGroup.add(line);
+
+    // ============================
+    // LABEL DEL ÁNGULO
+    // ============================
+    var label = createAngleLabel(deg, color);
+
+    // posición a la misma distancia que solicitaste (2.5)
+    label.position.set(
+        labelDistance * Math.cos(rad),
+        0.02,
+        labelDistance * Math.sin(rad)
+    );
+
+    // etiqueta acostada en el piso
+    label.rotation.x = -Math.PI / 2;
+
+    polarGroup.add(label);
+}
+
 
 
 /* ===========================================================
