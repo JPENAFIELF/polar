@@ -209,25 +209,33 @@ var ringIndex = 1;
 
 for (var r = 0.5; r <= 5; r += 0.5) {
 
-    var label = createRadiusLabel(ringIndex.toString());
+    var offset = 0.12; // separación del círculo
 
-    // Offset hacia adentro para NO chocar con la línea del 90°
-    var offset = 0.12;
+    // --------------------------
+    //  LISTA DE ÁNGULOS CLAVE
+    // --------------------------
+    var angles = [
+        {deg: 0,   x:  r + offset, z: 0},        // 0°
+        {deg: 90,  x:  0,           z: -(r+offset)}, // 90° (adelante)
+        {deg: 180, x: -(r+offset),  z: 0},        // 180°
+        {deg: 270, x:  0,           z:  r+offset} // 270° (atrás)
+    ];
 
-    // Ángulo 90° EN SENTIDO ANTIHORARIO (Z negativo)
-    label.position.set(
-        0,
-        0.02,
-        -(r + offset)   // ✔ Z NEGATIVO → FRENTE AL USUARIO (90°)
-    );
+    angles.forEach(a => {
+        var label = createRadiusLabel(ringIndex.toString());
 
-    // etiqueta acostada en el piso
-    label.rotation.x = -Math.PI / 2;
+        // posición según el ángulo
+        label.position.set(a.x, 0.02, a.z);
 
-    polarGroup.add(label);
+        // Acostado sobre el plano
+        label.rotation.x = -Math.PI / 2;
+
+        polarGroup.add(label);
+    });
 
     ringIndex++;
 }
+
 
 
 
