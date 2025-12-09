@@ -179,6 +179,49 @@ for (var deg = 0; deg < 360; deg += 15){
 polarGroup.position.y = -1.5;
 scene.add(polarGroup);
 
+
+// ===========================================================
+// NUMERACIÓN DE CÍRCULOS (1,2,3,...)
+// ===========================================================
+function createRadiusLabel(text) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = 'white';
+    ctx.font = '32px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, canvas.width/2, canvas.height/2);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    const mat = new THREE.MeshBasicMaterial({
+        map: tex,
+        transparent: true
+    });
+
+    return new THREE.Mesh(new THREE.PlaneGeometry(0.35, 0.20), mat);
+}
+
+// colocar números en los círculos
+var ringIndex = 1;
+for (var r = 0.5; r <= 5; r += 0.5) {
+
+    var label = createRadiusLabel(ringIndex.toString());
+
+    // posición en el ángulo 0° de cada círculo
+    label.position.set(
+        r, 0.02, 0
+    );
+
+    label.rotation.x = -Math.PI/2;
+
+    polarGroup.add(label);
+    ringIndex++;
+}
+
+    
 /* ===========================================================
    RADIALES + LABELS PARA CADA ÁNGULO (0° A 345° CADA 15°)
 =========================================================== */
